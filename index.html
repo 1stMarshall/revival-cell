@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revival Cell Attendance</title>
+<meta name="description" content="Sunday attendance for Revival Cell, KNUST Obuasi — members, visitors, absences and follow-up.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one column of cards; summary first, analysis, then detail. */
+  :root {
+    --bg: #f6f4ef; --panel: #ffffff; --ink: #1d2433; --muted: #5d6474; --line: #e2ded5;
+    --accent: #7a2e3a; --accent-soft: #f3e6e8; --members: #2f5d8a; --visitors: #c98a2b;
+    --good: #2e7d4f; --bad: #b3362f;
+    --display: "Fraunces", Georgia, "Times New Roman", serif;
+    --body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #14171d; --panel: #1c2028; --ink: #eceef2; --muted: #a2a8b5; --line: #2d323c;
+      --accent: #e08b98; --accent-soft: #3a252a; --members: #6fa3d6; --visitors: #e0aa55;
+      --good: #6cc495; --bad: #ef7d74; color-scheme: dark; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-right)) 48px max(16px, env(safe-area-inset-left)); display: grid; gap: 20px; }
+  header { display: grid; gap: 6px; }
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { margin: 0; font-family: var(--display); font-weight: 600; font-size: clamp(28px, 5vw, 40px); line-height: 1.1; text-wrap: balance; }
+  .lede { margin: 4px 0 0; color: var(--muted); max-width: 65ch; }
+  .lede b { color: var(--ink); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  button { font: inherit; font-size: 13px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 4px; }
+  .tile .label { font-size: 13px; color: var(--muted); }
+  .tile .value { font-family: var(--display); font-size: 36px; line-height: 1.1; }
+  .tile .change { font-size: 13px; color: var(--muted); min-height: 1.2em; }
+  .up-good, .down-good { color: var(--good); font-weight: 600; }
+  .up-bad, .down-bad { color: var(--bad); font-weight: 600; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 10px; min-width: 0; }
+  .card h2 { margin: 0; font-family: var(--display); font-weight: 600; font-size: 20px; }
+  .note { margin: 0; font-size: 13px; color: var(--muted); max-width: 70ch; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; }
+  .analysis { border-left: 4px solid var(--accent); }
+  .finds { list-style: none; margin: 0; padding: 0; display: grid; }
+  .find { display: grid; grid-template-columns: minmax(8rem, 11rem) minmax(0, 1fr); gap: 6px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .find:first-child { border-top: 0; }
+  .find .k { font-size: 13px; font-weight: 600; color: var(--accent); padding-top: 2px; }
+  .find .v { max-width: 68ch; }
+  .find .tablewrap { grid-column: 2; }
+  @media (max-width: 560px) { .find { grid-template-columns: 1fr; } .find .tablewrap { grid-column: 1; } }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+  .chart { position: relative; min-height: 230px; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .chart text { fill: var(--muted); font: 12px var(--body); }
+  .tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 6px 18px rgba(0,0,0,.12); padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+  .tablewrap { overflow: auto; max-height: 24rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { position: sticky; top: 0; background: var(--panel); text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); }
+  td { padding: 7px 10px 7px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .num { text-align: right; }
+  .tag { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 600; }
+  .empty { margin: 0; font-size: 13px; color: var(--muted); }
+  .err { background: var(--accent-soft); color: var(--accent); border-radius: 8px; padding: 10px 14px; font-size: 14px; }
+  [hidden] { display: none !important; }
+  footer { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Revival Cell · KNUST Obuasi</span>
+    <h1>Sunday Attendance</h1>
+    <p class="lede" id="lede">Loading the latest reports…</p>
+    <div class="bar"><button id="refresh" type="button">Refresh</button><span id="updated"></span></div>
+  </header>
+
+  <div class="err" id="error" hidden></div>
+
+  <section class="tiles" aria-label="Last Sunday">
+    <div class="tile"><span class="label">Members who came</span><span class="value" id="t-members">—</span><span class="change" id="c-members"></span></div>
+    <div class="tile"><span class="label">Visitors who came</span><span class="value" id="t-visitors">—</span><span class="change" id="c-visitors"></span></div>
+    <div class="tile"><span class="label">Total who came</span><span class="value" id="t-total">—</span><span class="change" id="c-total"></span></div>
+    <div class="tile"><span class="label">Absent</span><span class="value" id="t-absent">—</span><span class="change" id="c-absent"></span></div>
+  </section>
+
+  <section class="card analysis">
+    <h2>Analysis</h2>
+    <p class="note">What the reports are saying, worked out from the numbers below.</p>
+    <ul class="finds">
+      <li class="find"><span class="k">Attendance trend</span><span class="v" id="a-trend">—</span></li>
+      <li class="find"><span class="k">Zones</span><span class="v" id="a-zones">—</span></li>
+      <li class="find"><span class="k">Why people miss</span><span class="v" id="a-reason">—</span></li>
+      <li class="find"><span class="k">Missing often</span><span class="v" id="a-repeat">—</span>
+        <div class="tablewrap" id="w-repeat" hidden><table><thead><tr><th>Name</th><th>Zone</th><th class="num">Times absent</th><th>Reasons given</th></tr></thead><tbody id="b-repeat"></tbody></table></div></li>
+      <li class="find"><span class="k">Visitors coming back</span><span class="v" id="a-return">—</span>
+        <div class="tablewrap" id="w-return" hidden><table><thead><tr><th>Name</th><th>Hostel</th><th class="num">Sundays came</th><th>Last came</th></tr></thead><tbody id="b-return"></tbody></table></div></li>
+    </ul>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Who came each Sunday</h2>
+      <p class="note">Last 12 Sundays, all zones together.</p>
+      <div class="legend"><span><i style="background:var(--members)"></i>Members</span><span><i style="background:var(--visitors)"></i>Visitors</span></div>
+      <div class="chart" id="chart"></div>
+      <p class="empty" id="chart-empty" hidden>The chart starts with the first Sunday report.</p>
+    </section>
+    <section class="card">
+      <h2>Zones</h2>
+      <p class="note" id="zones-note">Latest Sunday. Turnout is members who came out of the members on that zone's list.</p>
+      <div class="tablewrap"><table><thead><tr><th>Zone</th><th class="num">On list</th><th class="num">Members came</th><th class="num">Visitors</th><th class="num">Absent</th><th class="num">Turnout</th></tr></thead><tbody id="b-zones"></tbody></table></div>
+    </section>
+  </div>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Absent, last 4 weeks</h2>
+      <p class="note">For follow-up. Reason as the worker picked it on the form.</p>
+      <div class="tablewrap"><table><thead><tr><th>Sunday</th><th>Name</th><th>Zone</th><th>Reason</th></tr></thead><tbody id="b-absent"></tbody></table></div>
+      <p class="empty" id="e-absent" hidden>No one has been marked absent in the last 4 weeks.</p>
+    </section>
+    <section class="card">
+      <h2>Visitors, last 4 weeks</h2>
+      <p class="note">People to welcome back. They become members once they're consistent.</p>
+      <div class="tablewrap"><table><thead><tr><th>Sunday</th><th>Name</th><th>Hostel</th><th>Reported by</th></tr></thead><tbody id="b-visitors"></tbody></table></div>
+      <p class="empty" id="e-visitors" hidden>No visitors recorded in the last 4 weeks.</p>
+    </section>
+  </div>
+
+  <footer>Data comes straight from the Revival Cell database each time this page loads. It refreshes by itself every 5 minutes.</footer>
+</div>
+
+<script>
+(() => {
+  const API = 'https://upmufudxpjbdhatrzhjh.supabase.co/rest/v1/';
+  const KEY = 'sb_publishable_ka54VHp8i-RXl0FAfpdyWQ_YWLdAXfc'; // public, read-only: dashboard views only
+  const CONSISTENT = 3; // Sundays in 8 weeks that earn the "Consistent" tag
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (n) => (n == null ? '—' : Number(n).toLocaleString('en'));
+  const pct = (x) => (x == null ? '—' : Math.round(x * 100) + '%');
+  const day = (s) => s ? new Date(s + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '—';
+  const shortDay = (s) => new Date(s + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  const el = (tag, text, cls) => { const e = document.createElement(tag); if (text != null) e.textContent = text; if (cls) e.className = cls; return e; };
+
+  async function get(view) {
+    const r = await fetch(API + view + '?select=*', { headers: { apikey: KEY } });
+    if (!r.ok) throw new Error(view + ': ' + r.status + ' ' + (await r.text()).slice(0, 160));
+    return r.json();
+  }
+
+  function fillRows(tbodyId, rows, cells) {
+    const tb = $(tbodyId);
+    tb.replaceChildren(...rows.map((r) => { const tr = el('tr'); cells(r).forEach((c) => tr.append(c)); return tr; }));
+  }
+  const td = (t, cls) => el('td', t, cls);
+
+  function drawChart(rows) {
+    const box = $('chart');
+    box.replaceChildren();
+    $('chart-empty').hidden = rows.length > 0;
+    if (!rows.length) return;
+    const data = rows.slice().reverse();
+    const W = Math.max(280, box.clientWidth || 280), H = 230, top = 12, bottom = 28;
+    const max = Math.max(1, ...data.map((r) => r.total));
+    const step = Math.pow(10, Math.floor(Math.log10(max))) || 1;
+    const nice = Math.ceil(max / step) * step;
+    const ticks = [0, 1, 2, 3, 4].map((i) => Math.round((nice * i) / 4)).filter((v, i, a) => a.indexOf(v) === i);
+    const left = 10 + String(nice).length * 8, right = 4;
+    const y = (v) => H - bottom - ((H - bottom - top) * v) / nice;
+    const band = (W - left - right) / data.length;
+    const bw = Math.min(32, band * 0.65);
+    const NS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', 'Members and visitors who came each Sunday');
+    const add = (name, attrs, text) => { const n = document.createElementNS(NS, name); for (const k in attrs) n.setAttribute(k, attrs[k]); if (text != null) n.textContent = text; svg.append(n); return n; };
+    const css = getComputedStyle(document.documentElement);
+    ticks.forEach((t) => {
+      add('line', { x1: left, x2: W - right, y1: y(t), y2: y(t), stroke: css.getPropertyValue('--line'), 'stroke-width': 1 });
+      add('text', { x: left - 6, y: y(t), dy: '0.32em', 'text-anchor': 'end' }, fmt(t));
+    });
+    const every = Math.max(1, Math.ceil((data.length * 46) / (W - left - right)));
+    const tip = el('div', null, 'tip'); tip.hidden = true;
+    data.forEach((r, i) => {
+      const x = left + i * band + (band - bw) / 2;
+      add('rect', { x, width: bw, y: y(r.members), height: Math.max(0, y(0) - y(r.members)), fill: css.getPropertyValue('--members'), rx: 2 });
+      add('rect', { x, width: bw, y: y(r.members + r.visitors), height: Math.max(0, y(r.members) - y(r.members + r.visitors)), fill: css.getPropertyValue('--visitors'), rx: 2 });
+      if ((data.length - 1 - i) % every === 0) add('text', { x: left + i * band + band / 2, y: H - 8, 'text-anchor': 'middle' }, shortDay(r.service_date));
+      const hit = add('rect', { x: left + i * band, width: band, y: top, height: H - bottom - top, fill: 'transparent' });
+      hit.addEventListener('mousemove', (ev) => {
+        tip.replaceChildren(el('div', day(r.service_date)), el('div', 'Members ' + fmt(r.members)), el('div', 'Visitors ' + fmt(r.visitors)), el('div', 'Total ' + fmt(r.total)));
+        tip.hidden = false;
+        const b = box.getBoundingClientRect();
+        let lx = ev.clientX - b.left + 12;
+        if (lx + tip.offsetWidth > b.width) lx = ev.clientX - b.left - 12 - tip.offsetWidth;
+        tip.style.left = Math.max(0, lx) + 'px';
+        tip.style.top = Math.max(0, ev.clientY - b.top - 10) + 'px';
+      });
+      hit.addEventListener('mouseleave', () => { tip.hidden = true; });
+    });
+    box.append(svg, tip);
+  }
+
+  async function load() {
+    $('error').hidden = true;
+    try {
+      const [bySunday, byZone, absentees, visitors, repeat, returning] = await Promise.all([
+        get('dash_by_sunday'), get('dash_by_zone'), get('dash_absentees'),
+        get('dash_visitors'), get('dash_repeat_absent'), get('dash_returning_visitors'),
+      ]);
+      const last = bySunday[0], prev = bySunday[1];
+
+      // Summary
+      if (!last) {
+        $('lede').textContent = 'No Sunday reports yet. The numbers fill in as soon as workers submit the Sunday Report form.';
+      } else {
+        $('lede').replaceChildren('On ', el('b', day(last.service_date)), ', ', el('b', fmt(last.total)), ' people came: ',
+          el('b', fmt(last.members)), ' members and ', el('b', fmt(last.visitors)), ' visitors. ', el('b', fmt(last.absent)), ' were marked absent.');
+      }
+      ['members', 'visitors', 'total', 'absent'].forEach((k) => {
+        $('t-' + k).textContent = last ? fmt(last[k]) : '—';
+        const c = $('c-' + k);
+        c.replaceChildren();
+        if (last && prev) {
+          const d = last[k] - prev[k];
+          const badUp = k === 'absent';
+          const cls = d === 0 ? '' : d > 0 ? (badUp ? 'up-bad' : 'up-good') : (badUp ? 'down-good' : 'down-bad');
+          c.append(el('span', (d > 0 ? '+' : '') + fmt(d), cls), ' from the Sunday before');
+        }
+      });
+
+      // Analysis: trend
+      if (bySunday.length >= 2) {
+        const before = bySunday.slice(1, 5);
+        const avg = before.reduce((s, r) => s + r.total, 0) / before.length;
+        const change = avg > 0 ? (last.total - avg) / avg : null;
+        const dir = change == null ? 'compared with' : change > 0 ? 'above' : change < 0 ? 'below' : 'level with';
+        $('a-trend').replaceChildren("Last Sunday's total of ", el('b', fmt(last.total)), ' is ',
+          change == null ? '' : el('b', pct(Math.abs(change)), change > 0 ? 'up-good' : change < 0 ? 'down-bad' : ''),
+          ' ' + dir + ' the average of the ', el('b', fmt(before.length)), ' Sundays before it (', el('b', (Math.round(avg * 10) / 10).toString()), ').');
+      } else $('a-trend').textContent = 'Needs at least two Sundays of reports.';
+
+      // Analysis + table: zones
+      const turnout = (z) => (z.reports > 0 && z.on_list > 0 ? z.members / z.on_list : null);
+      const ranked = byZone.filter((z) => turnout(z) != null).sort((a, b) => turnout(a) - turnout(b));
+      if (ranked.length >= 2) {
+        const lo = ranked[0], hi = ranked[ranked.length - 1];
+        $('a-zones').replaceChildren('Lowest turnout: ', el('b', lo.zone), ' at ', el('b', pct(turnout(lo))), '. Highest: ', el('b', hi.zone), ' at ', el('b', pct(turnout(hi))), '. The lowest zone is where a visit from the worker helps most.');
+      } else $('a-zones').textContent = 'Needs reports from at least two zones on the same Sunday.';
+      $('zones-note').textContent = (byZone[0] && byZone[0].service_date ? 'Latest Sunday, ' + day(byZone[0].service_date) + '. ' : 'Latest Sunday. ') + "Turnout is members who came out of the members on that zone's list.";
+      fillRows('b-zones', byZone, (z) => [td(z.zone), td(fmt(z.on_list), 'num'), td(fmt(z.members), 'num'), td(fmt(z.visitors), 'num'), td(fmt(z.absent), 'num'), td(pct(turnout(z)), 'num')]);
+
+      // Analysis: reasons
+      if (absentees.length) {
+        const counts = {};
+        absentees.forEach((a) => { counts[a.reason] = (counts[a.reason] || 0) + 1; });
+        const [reason, n] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+        $('a-reason').replaceChildren('The most common reason for absence in the last 4 weeks is ', el('b', reason), ': ', el('b', fmt(n)), ' of ', el('b', fmt(absentees.length)), ' absences.');
+      } else $('a-reason').textContent = 'No absences recorded in the last 4 weeks.';
+
+      // Analysis: repeat absentees
+      $('w-repeat').hidden = !repeat.length;
+      $('a-repeat').replaceChildren(...(repeat.length
+        ? [el('b', fmt(repeat.length)), ' people missed 2 or more Sundays in the last 4 weeks. Follow up with them first.']
+        : ['No one has missed more than one Sunday in the last 4 weeks.']));
+      fillRows('b-repeat', repeat, (r) => [td(r.name), td(r.zone), td(fmt(r.times), 'num'), td(r.reasons)]);
+
+      // Analysis: returning visitors
+      const consistent = returning.filter((r) => r.sundays >= CONSISTENT).length;
+      $('w-return').hidden = !returning.length;
+      $('a-return').replaceChildren(...(returning.length
+        ? [el('b', fmt(returning.length)), ' visitors came on 2 or more Sundays in the last 8 weeks. ', el('b', fmt(consistent)), ' of them came ' + CONSISTENT + ' or more times and may be ready to become members.']
+        : ['No visitor has come back for a second Sunday in the last 8 weeks yet.']));
+      fillRows('b-return', returning, (r) => {
+        const name = td(r.name);
+        if (r.sundays >= CONSISTENT) name.append(el('span', 'Consistent', 'tag'));
+        return [name, td(r.hostel), td(fmt(r.sundays), 'num'), td(day(r.last_seen))];
+      });
+
+      // Lists
+      fillRows('b-absent', absentees, (r) => [td(day(r.service_date)), td(r.name), td(r.zone), td(r.reason)]);
+      $('e-absent').hidden = absentees.length > 0;
+      fillRows('b-visitors', visitors, (r) => [td(day(r.service_date)), td(r.name), td(r.hostel), td(r.brought_by)]);
+      $('e-visitors').hidden = visitors.length > 0;
+
+      drawChart(bySunday);
+      $('updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      $('error').textContent = "Couldn't load the latest numbers. Check your connection and press Refresh. (" + e.message + ')';
+      $('error').hidden = false;
+    }
+  }
+
+  $('refresh').addEventListener('click', load);
+  let lastW = 0;
+  window.addEventListener('resize', () => { const w = $('chart').clientWidth; if (Math.abs(w - lastW) > 20) { lastW = w; load(); } });
+  setInterval(load, 5 * 60 * 1000);
+  load();
+})();
+</script>
+</body>
+</html>
